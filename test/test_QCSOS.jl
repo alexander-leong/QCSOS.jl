@@ -1,10 +1,7 @@
-# using CairoMakie
 using DynamicPolynomials
 using LinearAlgebra
 using Random
-
-include("degenerate_constraint_excitation_solver.jl")
-include("./problems/unitary_fixed_time.jl")
+using QCSOS
 
 function get_problem_parameters()
     # Drift Hamiltonian
@@ -31,14 +28,6 @@ function get_problem_parameters()
     return H0, V, x, t
 end
 
-# function process_result(solver::Solver)
-    # println("Reconstructing solution in original basis")
-    # x = get_value_in_original_basis(summands, x_vec)
-
-    # plot result
-    # create_app(solver)
-# end
-
 function run_test()
     T = 0.5
     H0, V, x, t = get_problem_parameters()
@@ -56,16 +45,12 @@ function run_test()
     println(repeat("-", 144))
 
     solver = Solver(cone_qp)
-    solver = DegenerateConstraintExcitationSolver(cone_qp, sos_symmetric_group)
-    solver.ipm_solver.cb_before_iteration = cb_before_iteration
-    solver.ipm_solver.device = GPU
-    solver.ipm_solver.max_iterations = 4
-    x = run_fr_solver(solver.ipm_solver)
+    solver.device = GPU
+    solver.max_iterations = 4
+    x = run_fr_solver(solver)
     # x_vec = get_solution(solver.ipm_solver)
     # println("Dimension of x_vec: $(length(x_vec))")
     # return solver.ipm_solver
 end
 
 f = run_test()
-# ipm_solver = run_test()
-# process_result(ipm_solver)
