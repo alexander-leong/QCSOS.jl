@@ -21,6 +21,13 @@ function real_poly(p)
     )
 end
 
+function evaluate_outer_product_monomials(n, t, x)
+    v = [p(ones(n)*t) for p in monomials(x, 0:n)]
+    return v * v'
+end
+
+export evaluate_outer_product_monomials
+
 function square_frobenius_norm(M::AbstractArray)
     #=
     Square of the Frobenius norm of a matrix

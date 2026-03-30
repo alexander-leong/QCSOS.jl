@@ -28,7 +28,7 @@ function exp_chebyshev(Ω::AbstractMatrix, order::Integer)
 end
 
 # TODO: generalize the magnus expansion
-function est_unitary(H0, T, V, t, x)
+function est_unitary(H0, T, V, t, x, order=2)
     # get the partial sum of the Magnus expansion
     A₁ = A(H0, V, t[1], x)
     A₂ = A(H0, V, t[2], x)
@@ -55,7 +55,7 @@ function est_unitary(H0, T, V, t, x)
     
     Ω = convert(typeof(A₁), Ω)
 
-    exp½Ω = exp_chebyshev(Ω, 2);
+    exp½Ω = exp_chebyshev(Ω, order);
 
     return exp½Ω
 end
@@ -93,4 +93,5 @@ function A(H0, V, t, x)
     (H0 + V * u(t, x)) / im
 end
 
+export est_unitary
 export get_unitary
