@@ -13,7 +13,7 @@ function QuantumUnitaryFixedTimeProblem(A, x)
     
     f = sum(tr_gram_A)
     program = ConeQP()
-    _, summands, sos_symmetric_group = wedderburn_decompose(program, f, n, x)
+    summands, sos_symmetric_group = wedderburn_decompose(program, f, n, x)
     
     vars = program.vars
     for cone in vars.cones

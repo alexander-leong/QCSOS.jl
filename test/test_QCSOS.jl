@@ -51,7 +51,7 @@ function run_test()
     exp½Ω = est_unitary(H0, T, V, t, x, p)
     A = exp½Ω' *  U_target - exp½Ω
     cone_qp, summands, _ = QuantumUnitaryFixedTimeProblem(A, x)
-    println("Optimization problem constructed successfully.")
+    @info "Optimization problem constructed successfully."
     println(repeat("-", 144))
 
     # solve optimization problem
