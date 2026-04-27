@@ -39,13 +39,16 @@ end
 
 export get_qc_problem
 
-function run_test()
-    # set QCSOS method parameters
-    ϵ = 1e-6 # absolute tolerance
-    η_eps = 2e-2 # absolute tolerance to determine exposed face (using duality gap)
-    η_lambda = 1e-3 # absolute tolerance to remove near redundant constraints
-    p = 2 # order of Chebyshev expansion for approximating matrix exponential
+"""
+    run_test(ϵ = 1e-6, η_eps = 2e-2, η_lambda = 1e-3, p = 2)
 
+# Parameters:
+* `ϵ`: absolute tolerance
+* `η_eps`: absolute tolerance to determine exposed face (using duality gap)
+* `η_lambda`: absolute tolerance to remove near redundant constraints
+* `p`: order of Chebyshev expansion for approximating matrix exponential
+"""
+function run_test(ϵ = 1e-2, η_eps = 2e-2, η_lambda = 1e-3, p = 2)
     # define optimization problem
     U_target, H0, T, V, t, x = get_qc_problem()
     exp½Ω = est_unitary(H0, T, V, t, x, p)
@@ -58,6 +61,7 @@ function run_test()
     solver = Solver(cone_qp)
     solver.device = CPU
     solver.max_iterations = 4
+    solver.tol_optimality = ϵ
     x_vec, _ = run_fr_solver(solver, true, η_eps, η_lambda)
 
     # get solution
