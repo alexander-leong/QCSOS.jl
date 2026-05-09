@@ -46,7 +46,6 @@ function get_infidelity(problem, solution)
 	# compute 1 - I_e as in https://qopt.readthedocs.io/en/latest/qopt_features/entanglement_fidelity.html
     Z = evaluate_outer_product_monomials(problem.T, problem.x)
 	HS = tr(solution * Z)
-    println(diag(solution * Z))
 	infidelity = HS / length(problem.H0)
     return infidelity
 end

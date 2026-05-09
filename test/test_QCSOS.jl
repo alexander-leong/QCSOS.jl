@@ -62,7 +62,6 @@ function run_test(ϵ = 1e-2, η_eps = 2e-2, η_lambda = 1e-3, p = 2)
 
     # get solution
 	solution = get_solution(problem.program)
-    println(solution == zeros(length(solution)))
 
     # evaluate solution
     infidelity = get_infidelity(problem, solution)
