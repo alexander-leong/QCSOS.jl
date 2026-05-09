@@ -27,6 +27,10 @@ function exp_chebyshev(Ω::AbstractMatrix, order::Integer)
     return series
 end
 
+function est_unitary(problem::QuantumControlSOSProblem, order=2)
+    return est_unitary(problem.H0, problem.T, problem.V, problem.t, problem.x, order)
+end
+
 # TODO: generalize the magnus expansion
 function est_unitary(H0, T, V, t, x, order=2)
     # get the partial sum of the Magnus expansion
@@ -58,6 +62,10 @@ function est_unitary(H0, T, V, t, x, order=2)
     exp½Ω = exp_chebyshev(Ω, order);
 
     return exp½Ω
+end
+
+function get_unitary(problem::QuantumControlSOSProblem, x)
+    return get_unitary(problem.H0, problem.T, problem.V, x)
 end
 
 function get_unitary(H0, T, V, x::AbstractArray)

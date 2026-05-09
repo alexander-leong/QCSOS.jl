@@ -1,11 +1,17 @@
+#=
+Copyright (c) 2025 Alexander Leong, and contributors
+
+This Julia package QCSOS.jl is released under the MIT license; see LICENSE.md
+file in the root directory
+=#
+
 using DynamicPolynomials
 using LinearAlgebra
 using ConicSolve
-using ConicSolveFR
 using QCSOS
 using Random
 
-function get_qc_problem()
+function get_qc_problem(i = 1)
     T = 0.5
     # Drift Hamiltonian
     H0 = [
@@ -25,16 +31,13 @@ function get_qc_problem()
 
     V ./= norm(V, Inf);
 
-    n = 4
-    @polyvar x[1:n]
-    @polyvar t[1:n]
     n_samples = 1000
     Random.seed!(6292022)
-    exact_x = -1 .+ 2 * rand(length(x) * n_samples)
-    exact_x = reshape(exact_x, (length(x), n_samples))
-    i = 1
-    U_target = get_unitary(H0, T, V, exact_x[:, i])
-    return U_target, H0, T, V, t, x
+    problem = QuantumControlSOSProblem(H0, V, T)
+    exact_x = -1 .+ 2 * rand(length(problem.x) * n_samples)
+    exact_x = reshape(exact_x, (length(problem.x), n_samples))
+    U_target = get_unitary(problem, exact_x[:, i])
+    return U_target, problem
 end
 
 export get_qc_problem
@@ -50,29 +53,20 @@ export get_qc_problem
 """
 function run_test(ϵ = 1e-2, η_eps = 2e-2, η_lambda = 1e-3, p = 2)
     # define optimization problem
-    U_target, H0, T, V, t, x = get_qc_problem()
-    exp½Ω = est_unitary(H0, T, V, t, x, p)
-    A = exp½Ω' *  U_target - exp½Ω
-    cone_qp, summands, _ = QuantumUnitaryFixedTimeProblem(A, x)
+    U_target, problem = get_qc_problem()
+    problem = QuantumUnitaryFixedTimeProblem(U_target, problem, p)
     @info "Optimization problem constructed successfully."
-    println(repeat("-", 144))
-
-    # solve optimization problem
-    solver = Solver(cone_qp)
-    solver.device = CPU
-    solver.max_iterations = 4
-    solver.tol_optimality = ϵ
-    x_vec, _ = run_fr_solver(solver, true, η_eps, η_lambda)
+    
+    qcsos_solver = QCSOS_Solver(p, problem, ϵ, η_eps, η_lambda)
+    solve!(qcsos_solver)
 
     # get solution
-	solution = get_reduced_solution([summands[1]], [x_vec[1][1]])
+	solution = get_solution(problem.program)
+    println(solution == zeros(length(solution)))
 
-	# compute infidelity from Hilbert Schmidt inner product (Frobenius norm)^2
-	# compute 1 - I_e as in https://qopt.readthedocs.io/en/latest/qopt_features/entanglement_fidelity.html
-    Z = evaluate_outer_product_monomials(length(x), T, x)
-	HS = tr(solution * Z)
-	infidelity = HS / length(A)
-    println("Infidelity: $(infidelity)")
+    # evaluate solution
+    infidelity = get_infidelity(problem, solution)
+    @info("Infidelity: $(infidelity)")
 end
 
 f = run_test()

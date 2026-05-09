@@ -21,12 +21,23 @@ function real_poly(p)
     )
 end
 
-function evaluate_outer_product_monomials(n, t, x)
+function evaluate_outer_product_monomials(t, x)
+    n = length(x)
     v = [p(ones(n)*t) for p in monomials(x, 0:n)]
     return v * v'
 end
 
 export evaluate_outer_product_monomials
+
+function get_hilbert_schmidt_inner_product(A)
+    tr_gram_A = []
+    for i in axes(A, 1)
+        a = real.(A[i, i]' * A[i, i])
+        push!(tr_gram_A, a)
+    end    
+    f = sum(tr_gram_A)
+    return f
+end
 
 function square_frobenius_norm(M::AbstractArray)
     #=

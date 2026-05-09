@@ -1,31 +1,29 @@
+#=
+Copyright (c) 2025 Alexander Leong, and contributors
+
+This Julia package QCSOS.jl is released under the MIT license; see LICENSE.md
+file in the root directory
+=#
+
 using ConicSolve
 
 include("../popt.jl")
 
-function QuantumUnitaryFixedTimeProblem(A, x)
-    tr_gram_A = []
-    for i in 1:size(A, 1)
-        a = real.(A[i, i]' * A[i, i])
-        push!(tr_gram_A, a)
-    end
+function QuantumUnitaryFixedTimeProblem(U_target, problem, order=2)
+    exp½Ω = est_unitary(problem, order)
+    A = exp½Ω' *  U_target - exp½Ω
+    f = get_hilbert_schmidt_inner_product(A)
+    n = problem.n
 
-    n = 4
+    cone_qp = ConeQP()
+    program = define_program(cone_qp,
+                   minimize(f),
+                   f ∈ ConicSolve.SymmetricGroup(n))
     
-    f = sum(tr_gram_A)
-    program = ConeQP()
-    summands, sos_symmetric_group = wedderburn_decompose(program, f, n, x)
+    build_program(cone_qp)
+    problem.program = program
     
-    vars = program.vars
-    for cone in vars.cones
-        add_default_inequality_constraint(program, cone)
-        n = ConicSolve.get_size(cone)
-        c = ones(n)
-        set_objective(program, cone, c)
-    end
-    
-    program = build_program(program)
-    
-    return program, summands, sos_symmetric_group
+    return problem
 end
 
 export QuantumUnitaryFixedTimeProblem
