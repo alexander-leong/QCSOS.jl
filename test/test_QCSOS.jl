@@ -51,7 +51,7 @@ export get_qc_problem
 * `η_lambda`: absolute tolerance to remove near redundant constraints
 * `p`: order of Chebyshev expansion for approximating matrix exponential
 """
-function run_test(ϵ = 1e-2, η_eps = 2e-2, η_lambda = 1e-3, p = 2)
+function run_test(ϵ = 1e-2, η_eps = 1e-3, η_lambda = 1e-3, p = 2)
     # define optimization problem
     U_target, problem = get_qc_problem()
     problem = QuantumUnitaryFixedTimeProblem(U_target, problem, p)
@@ -64,8 +64,11 @@ function run_test(ϵ = 1e-2, η_eps = 2e-2, η_lambda = 1e-3, p = 2)
 	solution = get_solution(problem.program)
 
     # evaluate solution
-    infidelity = get_infidelity(problem, solution)
-    @info("Infidelity: $(infidelity)")
+    coefficients = get_control(problem, solution)
+    H_result = get_unitary_from_control(problem, coefficients)
+    # infidelity = get_infidelity(U_target, H_result)
+    # @info("Infidelity: $(infidelity)")
+    return U_target, H_result, problem, solution
 end
 
-f = run_test()
+U_target, problem, solution = run_test()

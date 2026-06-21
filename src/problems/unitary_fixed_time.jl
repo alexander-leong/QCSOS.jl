@@ -20,7 +20,7 @@ function QuantumUnitaryFixedTimeProblem(U_target, problem, order=2)
                    minimize(f),
                    f ∈ ConicSolve.SymmetricGroup(n))
     
-    build_program(cone_qp)
+    build_program(program)
     problem.program = program
     
     return problem

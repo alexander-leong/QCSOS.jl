@@ -7,6 +7,7 @@ file in the root directory
 
 using ConicSolve
 using ConicSolveFR
+using LinearAlgebra
 
 mutable struct QCSOS_Solver
     p::Int
@@ -30,7 +31,8 @@ end
 function solve!(solver::QCSOS_Solver)
     problem = solver.problem
     program = problem.program
-    cone_qp = program.cone_qp
+    program_int = program.program_int
+    cone_qp = program_int.cone_qp
 
     cone_solver = Solver(cone_qp)
     cone_solver.device = CPU
@@ -41,15 +43,48 @@ function solve!(solver::QCSOS_Solver)
     return x_vec
 end
 
-function get_infidelity(problem, solution)
+function get_infidelity(solution::Matrix{Float64}, target::Matrix{Float64})
 	# compute infidelity from Hilbert Schmidt inner product (Frobenius norm)^2
 	# compute 1 - I_e as in https://qopt.readthedocs.io/en/latest/qopt_features/entanglement_fidelity.html
-    Z = evaluate_outer_product_monomials(problem.T, problem.x)
-	HS = tr(solution * Z)
-	infidelity = HS / length(problem.H0)
+    HS = abs.(tr(target * solution))^2
+	infidelity = HS / length(solution)
     return infidelity
 end
 
+function get_control(problem::QuantumControlSOSProblem,
+        solution::Matrix{Float64},
+        numerical_rank_tol::Float64 = 1e-3)
+    polynomial_fn = problem.program.group.f
+    
+    #= get polynomial control coefficients
+       we need to factorize the gram matrix before coefficient read out
+       since M' * M == F.Vt' * diagm(F.S.^2) * F.Vt where F = svd(M)
+       (see Sanjay Lall's SOS slides, page 9 or similar!) =#
+    
+    # (i) compute SVD of gram matrix (solution)
+    F = svd(solution)
+    
+    # (ii) get rank one approximation to the gram matrix
+    numerical_rank = sum(F.S .> numerical_rank_tol)
+    @info("Numerical rank of solution (ideally 1) with tolerance $(numerical_rank_tol) is $(numerical_rank)")
+    S = F.S[1]
+    Vt = F.Vt[1, :]
+    
+    # (iii) read out coefficients from S * Vt
+    v = S * Vt
+    vars = variables(polynomial_fn.f)
+    coefficients = [(vars[i], c) for (i, c) in enumerate(reverse(v[2:length(vars)]))]
+    return coefficients
+end
+
+function get_unitary_from_control(problem::QuantumControlSOSProblem, coefficients)
+    # call something like est_unitary, need to check polynomial, u(t, x) first
+    H_result = est_unitary(problem.H0, problem.T, problem.V, problem.t, [v[2] for v in coefficients])
+    return H_result
+end
+
 export QCSOS_Solver
+export get_control
 export get_infidelity
+export get_unitary_from_control
 export solve!
