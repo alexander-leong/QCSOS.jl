@@ -46,7 +46,7 @@ end
 function get_infidelity(solution::Matrix{Float64}, target::Matrix{Float64})
 	# compute infidelity from Hilbert Schmidt inner product (Frobenius norm)^2
 	# compute 1 - I_e as in https://qopt.readthedocs.io/en/latest/qopt_features/entanglement_fidelity.html
-    HS = abs.(tr(target * solution))^2
+    HS = abs.(tr(target' * solution))^2
 	infidelity = HS / length(solution)
     return infidelity
 end
