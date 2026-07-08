@@ -43,7 +43,7 @@ function solve!(solver::QCSOS_Solver)
     return x_vec
 end
 
-function get_infidelity(solution::Matrix{Float64}, target::Matrix{Float64})
+function get_infidelity(solution::Matrix{ComplexF64}, target::Matrix{ComplexF64})
 	# compute infidelity from Hilbert Schmidt inner product (Frobenius norm)^2
 	# compute 1 - I_e as in https://qopt.readthedocs.io/en/latest/qopt_features/entanglement_fidelity.html
     HS = abs.(tr(target' * solution))^2
@@ -80,7 +80,13 @@ end
 function get_unitary_from_control(problem::QuantumControlSOSProblem, coefficients)
     # call something like est_unitary, need to check polynomial, u(t, x) first
     H_result = est_unitary(problem.H0, problem.T, problem.V, problem.t, [v[2] for v in coefficients])
-    return H_result
+    H_result_val = zeros(ComplexF64, size(H_result))
+    for i in axes(H_result, 1)
+        for j in axes(H_result, 2)
+            H_result_val[i, j] = H_result[i, j].a[1]
+        end
+    end
+    return H_result_val
 end
 
 export QCSOS_Solver

@@ -66,8 +66,8 @@ function run_test(ϵ = 1e-2, η_eps = 1e-3, η_lambda = 1e-3, p = 2)
     # evaluate solution
     coefficients = get_control(problem, solution)
     H_result = get_unitary_from_control(problem, coefficients)
-    # infidelity = get_infidelity(U_target, H_result)
-    # @info("Infidelity: $(infidelity)")
+    infidelity = get_infidelity(U_target, H_result)
+    @info("Infidelity: $(infidelity)")
     return U_target, H_result, problem, solution
 end
 
