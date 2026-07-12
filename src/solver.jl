@@ -13,6 +13,7 @@ mutable struct QCSOS_Solver
     p::Int
     problem::QuantumControlSOSProblem
     solver::ConicSolve.Solver
+    x_vec
     ϵ::Float64
     η_eps::Float64
     η_lambda::Float64
@@ -21,6 +22,7 @@ mutable struct QCSOS_Solver
         solver = new()
         solver.p = p
         solver.problem = problem
+        solver.x_vec = []
         solver.ϵ = ϵ
         solver.η_eps = η_eps
         solver.η_lambda = η_lambda
@@ -40,6 +42,7 @@ function solve!(solver::QCSOS_Solver)
     cone_solver.tol_optimality = solver.ϵ
     
     x_vec, _ = run_fr_solver(program, cone_solver, true, solver.η_eps, solver.η_lambda)
+    solver.x_vec = x_vec
     return x_vec
 end
 
@@ -72,6 +75,11 @@ function get_control(problem::QuantumControlSOSProblem,
     
     # (iii) read out coefficients from S * Vt
     v = S * Vt
+
+    # (iv) rescale coefficients in terms of original basis
+    # polynomial_fn.f = rescale_polynomial(MB.MonomialBasis, polynomial_fn.f, problem.multipliers)
+
+    # (v) extract control coefficients
     vars = variables(polynomial_fn.f)
     coefficients = [(vars[i], c) for (i, c) in enumerate(reverse(v[2:length(vars)]))]
     return coefficients

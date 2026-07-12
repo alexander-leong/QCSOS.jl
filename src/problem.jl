@@ -12,6 +12,7 @@ mutable struct QuantumControlSOSProblem
     H0::Matrix{Float64}
     V::Matrix{Float64}
     T::Float64
+    multipliers::Vector{Float64}
     n::Int
     program::SymmetryReducedConeQP
     t
@@ -22,6 +23,7 @@ mutable struct QuantumControlSOSProblem
         problem.H0 = H0
         problem.V = V
         problem.T = T
+        problem.multipliers = Vector{Float64}[]
         problem.n = size(H0, 1) + 1
         problem.program = SymmetryReducedConeQP{SymmetricGroupAction}()
         @polyvar x[1:problem.n]
