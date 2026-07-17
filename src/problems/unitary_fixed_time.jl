@@ -34,7 +34,7 @@ function QuantumUnitaryFixedTimeProblem(U_target, problem, order=3)
     f = get_hilbert_schmidt_inner_product(A)
     scaled_coefficients, multipliers = scale_basis_coefficients(MB.MonomialBasis, MB.ScaledMonomialBasis, f)
     problem.multipliers = multipliers
-    # f = polynomial(scaled_coefficients, monomials(f))
+    f = polynomial(scaled_coefficients, monomials(f))
     n = problem.n
 
     cone_qp = ConeQP()

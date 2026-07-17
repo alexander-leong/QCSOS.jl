@@ -41,9 +41,9 @@ function solve!(solver::QCSOS_Solver)
     cone_solver.max_iterations = 4
     cone_solver.tol_optimality = solver.ϵ
     
-    x_vec, _ = run_fr_solver(program, cone_solver, true, solver.η_eps, solver.η_lambda)
+    x_vec, reduced_solvers = run_fr_solver(program, cone_solver, true, solver.η_eps, solver.η_lambda)
     solver.x_vec = x_vec
-    return x_vec
+    return x_vec, reduced_solvers
 end
 
 function get_infidelity(solution::Matrix{ComplexF64}, target::Matrix{ComplexF64})
@@ -56,7 +56,7 @@ end
 
 function get_control(problem::QuantumControlSOSProblem,
         solution::Matrix{Float64},
-        numerical_rank_tol::Float64 = 1e-3)
+        numerical_rank_tol::Float64 = 1e-4)
     polynomial_fn = problem.program.group.f
     
     #= get polynomial control coefficients
@@ -77,7 +77,7 @@ function get_control(problem::QuantumControlSOSProblem,
     v = S * Vt
 
     # (iv) rescale coefficients in terms of original basis
-    # polynomial_fn.f = rescale_polynomial(MB.MonomialBasis, polynomial_fn.f, problem.multipliers)
+    polynomial_fn.f = rescale_polynomial(MB.MonomialBasis, polynomial_fn.f, problem.multipliers)
 
     # (v) extract control coefficients
     vars = variables(polynomial_fn.f)

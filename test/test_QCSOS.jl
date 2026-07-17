@@ -43,7 +43,7 @@ end
 export get_qc_problem
 
 """
-    run_test(ϵ = 1e-3, η_eps = 2e-2, η_lambda = 1e-3, p = 2)
+    run_test(ϵ = 1e-3, η_eps = 1e-2, η_lambda = 1e-3, p = 2)
 
 # Parameters:
 * `ϵ`: absolute tolerance
@@ -51,14 +51,14 @@ export get_qc_problem
 * `η_lambda`: absolute tolerance to remove near redundant constraints
 * `p`: order of Chebyshev expansion for approximating matrix exponential
 """
-function run_test(ϵ = 1e-3, η_eps = 2e-2, η_lambda = 1e-3, p = 2)
+function run_test(ϵ = 1e-3, η_eps = 1e-2, η_lambda = 1e-3, p = 2)
     # define optimization problem
     U_target, problem = get_qc_problem()
     problem = QuantumUnitaryFixedTimeProblem(U_target, problem, p)
     @info "Optimization problem constructed successfully."
     
     qcsos_solver = QCSOS_Solver(p, problem, ϵ, η_eps, η_lambda)
-    solve!(qcsos_solver)
+    _, reduced_solvers = solve!(qcsos_solver)
 
     # get solution
 	solution = get_solution(problem.program, qcsos_solver.x_vec)
