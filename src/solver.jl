@@ -46,11 +46,13 @@ function solve!(solver::QCSOS_Solver)
     return x_vec, reduced_solvers
 end
 
-function get_infidelity(solution::Matrix{ComplexF64}, target::Matrix{ComplexF64})
+function get_infidelity(solution::Matrix, target::Matrix)
 	# compute infidelity from Hilbert Schmidt inner product (Frobenius norm)^2
 	# compute 1 - I_e as in https://qopt.readthedocs.io/en/latest/qopt_features/entanglement_fidelity.html
-    HS = abs.(tr(target' * solution))^2
-	infidelity = HS / length(solution)
+    p = tr(target' * solution)
+    # HS = abs.(tr(target' * solution))^2
+    HS = real.(conj(p) * p)
+	infidelity = 1 - (HS / length(solution))
     return infidelity
 end
 

@@ -18,17 +18,17 @@ mutable struct QuantumControlSOSProblem
     t
     x
 
-    function QuantumControlSOSProblem(H0, V, T)
+    function QuantumControlSOSProblem(H0, V, T, n=4)
         problem = new()
         problem.H0 = H0
         problem.V = V
         problem.T = T
         problem.multipliers = Vector{Float64}[]
-        problem.n = size(H0, 1) + 1
+        problem.n = n
         problem.program = SymmetryReducedConeQP{SymmetricGroupAction}()
-        @polyvar x[1:problem.n]
+        @polyvar x[1:n]
         problem.x = x
-        @polyvar t[1:problem.n]
+        @polyvar t[1:n]
         problem.t = t
         return problem
     end

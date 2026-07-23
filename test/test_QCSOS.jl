@@ -11,7 +11,8 @@ using ConicSolve
 using QCSOS
 using Random
 
-function get_qc_problem(i = 1)
+function get_qc_problem(degree)
+    i = 1
     T = 0.5
     # Drift Hamiltonian
     H0 = [
@@ -33,7 +34,7 @@ function get_qc_problem(i = 1)
 
     n_samples = 1000
     Random.seed!(6292022)
-    problem = QuantumControlSOSProblem(H0, V, T)
+    problem = QuantumControlSOSProblem(H0, V, T, degree)
     exact_x = -1 .+ 2 * rand(length(problem.x) * n_samples)
     exact_x = reshape(exact_x, (length(problem.x), n_samples))
     U_target = get_unitary(problem, exact_x[:, i])
@@ -43,18 +44,19 @@ end
 export get_qc_problem
 
 """
-    run_test(ϵ = 1e-3, η_eps = 1e-2, η_lambda = 1e-3, p = 2)
+    run_test(ϵ = 1e-3, η_eps = 1e-2, η_lambda = 1e-4, p = 2)
 
 # Parameters:
 * `ϵ`: absolute tolerance
 * `η_eps`: absolute tolerance to determine exposed face (using duality gap)
 * `η_lambda`: absolute tolerance to remove near redundant constraints
+* `degree`: degree of Symmetric Group S_n of degree n
 * `p`: order of Chebyshev expansion for approximating matrix exponential
 """
-function run_test(ϵ = 1e-3, η_eps = 1e-2, η_lambda = 1e-3, p = 2)
+function run_test(ϵ = 1e-4, η_eps = 1e-2, η_lambda = 1e-4, degree = 4, p = 2)
     # define optimization problem
-    U_target, problem = get_qc_problem()
-    problem = QuantumUnitaryFixedTimeProblem(U_target, problem, p)
+    U_target, problem = get_qc_problem(degree)
+    problem = QuantumUnitaryFixedTimeProblem(U_target, problem, degree, p)
     @info "Optimization problem constructed successfully."
     
     qcsos_solver = QCSOS_Solver(p, problem, ϵ, η_eps, η_lambda)

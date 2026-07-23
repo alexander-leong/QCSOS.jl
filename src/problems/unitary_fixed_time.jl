@@ -28,19 +28,19 @@ function rescale_polynomial(Basis::Type, f, multipliers)
     return f
 end
 
-function QuantumUnitaryFixedTimeProblem(U_target, problem, order=3)
+function QuantumUnitaryFixedTimeProblem(U_target, problem, degree=4, order=2)
     exp½Ω = est_unitary(problem, order)
-    A = exp½Ω' *  U_target - exp½Ω
-    f = get_hilbert_schmidt_inner_product(A)
+    # A = exp½Ω' *  U_target - exp½Ω
+    # f = get_hilbert_schmidt_inner_product(A)
+    f = get_infidelity(exp½Ω, U_target)
     scaled_coefficients, multipliers = scale_basis_coefficients(MB.MonomialBasis, MB.ScaledMonomialBasis, f)
     problem.multipliers = multipliers
     f = polynomial(scaled_coefficients, monomials(f))
-    n = problem.n
 
     cone_qp = ConeQP()
     program = define_program(cone_qp,
                    minimize(f),
-                   f ∈ ConicSolve.SymmetricGroup(n))
+                   f ∈ ConicSolve.SymmetricGroup(degree))
     
     build_program(program)
     problem.program = program
